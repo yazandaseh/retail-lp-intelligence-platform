@@ -89,6 +89,20 @@ function App() {
     risk: incident.risk_score,
   }));
 
+  const typeCounts = {};
+
+  incidents.forEach((incident) => {
+    if (!typeCounts[incident.incident_type]) {
+      typeCounts[incident.incident_type] = 0;
+    }
+    typeCounts[incident.incident_type]++;
+  });
+
+  const typeChartData = Object.keys(typeCounts).map((key) => ({
+    name: key,
+    count: typeCounts[key],
+  }));
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -203,6 +217,19 @@ function App() {
 
         <section style={styles.card}>
           <h2 style={styles.sectionTitle}>Loss & Risk Chart</h2>
+          
+          <h3 style={{ marginTop: "20px" }}>Incident Type Distribution</h3>
+
+          <div style={{ width: "100%", height: 250}}>
+            <ResponsiveContainer>
+              <BarChart data={typeChartData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
           <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer>
