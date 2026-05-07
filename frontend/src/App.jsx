@@ -243,7 +243,19 @@ function App() {
                   <td>${incident.estimated_loss.toFixed(2)}</td>
                   <td>{incident.repeat_offender}</td>
                   <td>{incident.status}</td>
-                  <td>{incident.risk_score}</td>
+                  <td
+                    style={{
+                      color:
+                      incident.risk_score >= 70
+                        ? "red"
+                        : incident.risk_score >= 40
+                        ? "orange"
+                        : "lime",
+                        frontWeight: "bold",  
+                    }}
+                  >
+                    {incident.risk_score}
+                  </td>
                 </tr>
               ))}
             </tbody>
