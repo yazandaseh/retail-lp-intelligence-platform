@@ -103,6 +103,23 @@ function App() {
     count: typeCounts[key],
   }));
 
+  const exportReport = () => {
+    const report = incidents
+      .map(
+        (i) => 
+          `Store: ${i.store_location}\nType: ${i.incident_type}\nLoss: $${i.estimated_loss}\nRisk: ${i.risk_score}\n---`
+      )
+      .join("\n")
+
+    const blob = new Blob([report], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "incident_report.txt";
+    a.click();
+  }
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -247,6 +264,10 @@ function App() {
 
       <section style={styles.card}>
         <h2 style={styles.sectionTitle}>Recent Incidents</h2>
+
+        <button onClick={exportReport} style={styles.button}>
+          Export Investigation Report
+        </button>
 
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
