@@ -7,7 +7,7 @@ class Incident(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     store_location = Column(String, index=True)
-    Incident_type = Column(String, index=True)
+    incident_type = Column(String, index=True)
     merchandise_category = Column(String, index=True)
     estimated_loss = Column(Float)
     suspect_description = Column(String)
