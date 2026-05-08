@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
+from app.auth import router as auth_router
 
 from .database import Base, engine, get_db
 from .models import Incident
@@ -15,6 +16,8 @@ app = FastAPI(
     description="Backend API for tracking incidents, theft patterns, and risk scores.",
     version="1.0.0"
 )
+
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
