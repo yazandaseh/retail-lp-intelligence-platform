@@ -157,6 +157,8 @@ function App() {
       );
 
       localStorage.setItem("token", response.data.access_token);
+      const payload = JSON.parse(atob(response.data.access_token.split(".")[1]));
+      localStorage.setItem("role", payload.role);
       setToken(response.data.access_token);
       fetchData();
     } catch (error) {
@@ -166,6 +168,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role")
     setToken("");
   };
   
