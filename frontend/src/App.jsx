@@ -11,6 +11,8 @@ import {
 
 const API_URL = "http://127.0.0.1:8000";
 
+const role = localStorage.getItem("role");
+
 function App() {
   const [incidents, setIncidents] = useState([]);
   const [stats, setStats] = useState({
@@ -246,7 +248,8 @@ function App() {
       </section>
 
       <main style={styles.mainGrid}>
-        <section style={styles.card}>
+        {role !== "viewer" && (
+          <section style={styles.card}>
           <h2 style={styles.sectionTitle}>Create Incident Report</h2>
 
           <form onSubmit={handleSubmit} style={styles.form}>
@@ -323,6 +326,7 @@ function App() {
             </button>
           </form>
         </section>
+      )}
 
         <section style={styles.card}>
           <h2 style={styles.sectionTitle}>Loss & Risk Chart</h2>
