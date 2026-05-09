@@ -2,12 +2,13 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
-from app.auth import router as auth_router
 
 from .database import Base, engine, get_db
 from .models import Incident
 from .schemas import IncidentCreate, IncidentResponse
 from .risk import calculate_risk_score
+from .auth import router as auth_router
+from .security import verify_access_token
 
 Base.metadata.create_all(bind=engine)
 
@@ -17,8 +18,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.include_router(auth_router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,8 +26,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+
+
+@app.get("/")
+def home():
+    return {"message": "Retail Loss Prevention Intelligence API is running"}
+
+
 @app.post("/incidents", response_model=IncidentResponse)
-def create_incident(incident: IncidentCreate, db: Session = Depends(get_db)):
+def create_incident(
+    incident: IncidentCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(verify_access_token)
+):
     risk_score = calculate_risk_score(
         incident.estimated_loss,
         incident.incident_type,
@@ -53,12 +64,20 @@ def create_incident(incident: IncidentCreate, db: Session = Depends(get_db)):
 
     return new_incident
 
+
 @app.get("/incidents", response_model=List[IncidentResponse])
-def get_incidents(db: Session = Depends(get_db)):
+def get_incidents(
+    db: Session = Depends(get_db),
+    current_user=Depends(verify_access_token)
+):
     return db.query(Incident).order_by(Incident.created_at.desc()).all()
 
+
 @app.get("/stats")
-def get_stats(db: Session = Depends(get_db)):
+def get_stats(
+    db: Session = Depends(get_db),
+    current_user=Depends(verify_access_token)
+):
     incidents = db.query(Incident).all()
 
     total_incidents = len(incidents)
