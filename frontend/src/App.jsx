@@ -32,14 +32,25 @@ function App() {
   });
 
   const fetchData = async () => {
+    if (!token) return;
+
     try {
-      const incidentsResponse = await axios.get(`${API_URL}/incidents`);
-      const statsResponse = await axios.get(`${API_URL}/stats`);
+      const incidentsResponse = await axios.get(`${API_URL}/incidents`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const statsResponse = await axios.get(`${API_URL}/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setIncidents(incidentsResponse.data);
       setStats(statsResponse.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching data:", error)
     }
   };
 
@@ -63,7 +74,11 @@ function App() {
     };
 
     try {
-      await axios.post(`${API_URL}/incidents`, payload);
+      await axios.post(`${API_URL}/incidents`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setFormData({
         store_location: "",
@@ -103,6 +118,12 @@ function App() {
     count: typeCounts[key],
   }));
 
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [loginData, setLoginData] = useState({
+    username: "",
+    password: "",
+  });
+
   const exportReport = () => {
     const report = incidents
       .map(
@@ -120,15 +141,83 @@ function App() {
     a.click();
   }
 
+  const handleLoginChange = (event) => {
+    setLoginData({
+      ...loginData,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/login?username=${loginData.username}&password=${loginData.password}`
+      );
+
+      localStorage.setItem("token", response.data.access_token);
+      setToken(response.data.access_token);
+      fetchData();
+    } catch (error) {
+      alert("Login failed. Check username and password.");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken("");
+  };
+  
+  if (!token) {
+  return (
+    <div style={styles.page}>
+      <div style={{ ...styles.card, maxWidth: "420px", margin: "120px auto" }}>
+        <h1 style={styles.title}>LP Intelligence Login</h1>
+        <p style={styles.subtitle}>Enter investigator credentials to continue.</p>
+
+        <form onSubmit={handleLogin} style={styles.form}>
+          <input
+            style={styles.input}
+            name="username"
+            placeholder="Username"
+            value={loginData.username}
+            onChange={handleLoginChange}
+            required
+          />
+
+          <input
+            style={styles.input}
+            name="password"
+            placeholder="Password"
+            type="password"
+            value={loginData.password}
+            onChange={handleLoginChange}
+            required
+          />
+
+          <button style={styles.button} type="submit">
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Retail LP Intelligence Platform</h1>
-          <p style={styles.subtitle}>
-            Incident tracking, risk scoring, and loss prevention analytics.
-          </p>
-        </div>
+      <div>
+        <h1 style={styles.title}>Retail LP Intelligence Platform</h1>
+         <p style={styles.subtitle}>
+      Incident tracking, risk scoring, and loss prevention analytics.
+    </p>
+  </div>
+
+     <button onClick={handleLogout} style={styles.button}>
+        Logout
+       </button>
       </header>
 
       <section style={styles.statsGrid}>
@@ -324,6 +413,9 @@ const styles = {
   },
   header: {
     marginBottom: "24px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   title: {
     fontSize: "36px",
