@@ -72,3 +72,17 @@ def verify_access_token(token: str = Depends(oauth2_scheme)):
             status_code=401,
             detail="Invalid or expired token"
         )
+    
+def require_roles(allowed_roles: list[str]):
+    def role_checker(current_user: dict = Depends(verify_access_token)):
+        user_role = current_user.get("role")
+
+        if user_role not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to perform this action."
+            )
+        
+        return current_user
+    
+    return role_checker

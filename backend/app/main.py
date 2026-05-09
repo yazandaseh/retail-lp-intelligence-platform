@@ -8,7 +8,7 @@ from .models import Incident
 from .schemas import IncidentCreate, IncidentResponse
 from .risk import calculate_risk_score
 from .auth import router as auth_router
-from .security import verify_access_token
+from .security import verify_access_token, require_roles
 
 Base.metadata.create_all(bind=engine)
 
@@ -38,7 +38,7 @@ def home():
 def create_incident(
     incident: IncidentCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(verify_access_token)
+    current_user: dict = Depends(require_roles(["admin", "investigator"]))
 ):
     risk_score = calculate_risk_score(
         incident.estimated_loss,
@@ -68,7 +68,7 @@ def create_incident(
 @app.get("/incidents", response_model=List[IncidentResponse])
 def get_incidents(
     db: Session = Depends(get_db),
-    current_user=Depends(verify_access_token)
+    current_user: dict = Depends(verify_access_token)
 ):
     return db.query(Incident).order_by(Incident.created_at.desc()).all()
 
@@ -76,7 +76,7 @@ def get_incidents(
 @app.get("/stats")
 def get_stats(
     db: Session = Depends(get_db),
-    current_user=Depends(verify_access_token)
+    current_user: dict = Depends(verify_access_token)
 ):
     incidents = db.query(Incident).all()
 
